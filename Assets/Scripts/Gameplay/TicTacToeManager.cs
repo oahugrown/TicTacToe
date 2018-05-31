@@ -46,47 +46,15 @@ public class TicTacToeManager : MonoBehaviour
     private int sizeOfBoard;
     #endregion // DATA
 
+    #region GETTERS
+    public int GetPlayerTurn() { return (int)playerTurn; }
+    #endregion // GETTERS
+
 
     #region MONO
-    private void Start()
+    private void Awake()
     {
-        // Caching data
-        chooseAGrid = GameObject.FindWithTag("GridCanvas").GetComponent<ChooseAGrid>();
-        chooseASymbol = GameObject.FindWithTag("SymbolCanvas").GetComponent<ChooseASymbol>();
-
-        // Setting size of board
-        if (chooseAGrid.GetGridType() == ChooseAGrid.GridType.threeByThree)
-            sizeOfBoard = k_threeByThree;
-        else
-            sizeOfBoard = k_fourByFour;
-        
-        playerTurn = PlayerTurn.playerOneTurn;
-
-        // Getting the player symbols
-        for (int i = 0; i < chooseASymbol.GetPlayerLength(); ++i)
-        {
-            int symbolIndex = (int)chooseASymbol.GetPlayerSymbol(i);
-            playerSymbols[i] = chooseASymbol.GetSymbolImage(symbolIndex);
-        }
-
-        // Getting and setting game UI
-        for (int i = 0; i < chooseASymbol.GetPlayerLength(); ++i)
-        {
-            // Getting ctive images
-            Transform playerUI = this.transform.parent.GetChild(i);
-            Image playerActiveImage = playerUI.GetChild(0).GetComponent<Image>();
-            playerActive[i] = playerActiveImage;
-            // Setting player symbols
-            playerUI.transform.GetChild(1).GetComponent<Image>().sprite = playerSymbols[i];
-        }
-
-        // Setting up the board
-        for (int i = 0; i < (sizeOfBoard * sizeOfBoard); ++i)
-        {
-            Tile newTile = new Tile();
-            newTile = Tile.open;
-            tiles.Add(newTile);
-        }
+        SetUpGame();
     }
     #endregion // MONO
 
@@ -98,8 +66,7 @@ public class TicTacToeManager : MonoBehaviour
             return;
 
         // Assign the player to the tile
-        GameObject tileButton = EventSystem.current.currentSelectedGameObject;
-        tileButton = tileButton.transform.GetChild(0).gameObject;
+        GameObject tileButton = this.transform.GetChild(tileIndex).gameObject;
         tileButton.GetComponent<Image>().sprite = playerSymbols[(int)playerTurn];
         tiles[tileIndex] = (Tile)playerTurn;
 
@@ -219,11 +186,51 @@ public class TicTacToeManager : MonoBehaviour
                     return true;
                 else
                     tileIndex -= (sizeOfBoard - 1);
-
             }
         }
 
         return false;
+    }
+
+    private void SetUpGame()
+    {
+        // Caching data
+        chooseAGrid = GameObject.FindWithTag("GridCanvas").GetComponent<ChooseAGrid>();
+        chooseASymbol = GameObject.FindWithTag("SymbolCanvas").GetComponent<ChooseASymbol>();
+
+        // Setting size of board
+        if (chooseAGrid.GetGridType() == ChooseAGrid.GridType.threeByThree)
+            sizeOfBoard = k_threeByThree;
+        else
+            sizeOfBoard = k_fourByFour;
+
+        playerTurn = PlayerTurn.playerOneTurn;
+
+        // Getting the player symbols
+        for (int i = 0; i < chooseASymbol.GetPlayerLength(); ++i)
+        {
+            int symbolIndex = (int)chooseASymbol.GetPlayerSymbol(i);
+            playerSymbols[i] = chooseASymbol.GetSymbolImage(symbolIndex);
+        }
+
+        // Getting and setting game UI
+        for (int i = 0; i < chooseASymbol.GetPlayerLength(); ++i)
+        {
+            // Getting ctive images
+            Transform playerUI = this.transform.parent.GetChild(i);
+            Image playerActiveImage = playerUI.GetChild(0).GetComponent<Image>();
+            playerActive[i] = playerActiveImage;
+            // Setting player symbols
+            playerUI.transform.GetChild(1).GetComponent<Image>().sprite = playerSymbols[i];
+        }
+
+        // Setting up the board
+        for (int i = 0; i < (sizeOfBoard * sizeOfBoard); ++i)
+        {
+            Tile newTile = new Tile();
+            newTile = Tile.open;
+            tiles.Add(newTile);
+        }
     }
 
     private void EndGame()
@@ -232,5 +239,6 @@ public class TicTacToeManager : MonoBehaviour
         GameOver gameOver = GameObject.FindWithTag("GameOverCanvas").GetComponent<GameOver>();
         gameOver.ActivateGameOver((int)playerTurn);
     }
+
     #endregion  // PRIVATE
 }

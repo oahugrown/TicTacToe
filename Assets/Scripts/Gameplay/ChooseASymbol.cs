@@ -33,18 +33,14 @@ public class ChooseASymbol : MonoBehaviour
     #endregion // DATA
 
 
-    #region GETTERS
+    #region GETTERS_AND_SETTERS
     public PlayerSymbol GetPlayerSymbol(int playerIndex) { return playerSymbols[playerIndex]; }
     public Sprite GetSymbolImage(int symbolIndex)
     {
         return symbolButtons[symbolIndex].GetComponent<Image>().sprite;
     }
     public int GetPlayerLength() { return (int)SelectedPlayer.length; }
-    #endregion // GETTERS
-
-
-    #region MONO
-    private void Awake()
+    public void SetNewGame()
     {
         for (int i = 0; i < playerSelectObjects.Length; ++i)
         {
@@ -52,6 +48,14 @@ public class ChooseASymbol : MonoBehaviour
             playerSymbols[i] = PlayerSymbol.unassigned;
         }
         GetComponent<Canvas>().enabled = true;
+    }
+    #endregion // GETTERS
+
+
+    #region MONO
+    private void Awake()
+    {
+        SetNewGame();
     }
     #endregion // MONO
 
@@ -104,5 +108,7 @@ public class ChooseASymbol : MonoBehaviour
         GetComponent<Canvas>().enabled = false;
         GameObject.FindWithTag("GridCanvas").GetComponent<Canvas>().enabled = true;
     }
+
+
     #endregion // PRIVATE
 }

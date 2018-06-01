@@ -3,12 +3,11 @@
 
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.SceneManagement;
 
 class EditorTestTool : EditorWindow
 {
     #region UNITYMENU
-    [MenuItem("Tool/Open Test Window")]
+    [MenuItem("Tools/Open Test Window")]
 
     public static void ShowWindow()
     {
@@ -20,6 +19,8 @@ class EditorTestTool : EditorWindow
 
     #region DATA
     private TestData testData = new TestData();
+    private bool testActivated = false;
+    private string status;
     #endregion // DATA
 
 
@@ -29,7 +30,17 @@ class EditorTestTool : EditorWindow
         if (!EditorApplication.isPlaying)
         {
             EditorGUILayout.HelpBox("Game needs to be in PlayMode for Testing Tool to activate.", MessageType.Warning);
+            ReloadTest();
             return;
+        }
+        if (testActivated)
+        {
+                // Results
+                GuiSeparator("Test in session");
+                string results = ("Grid: " + testData.gridOptions.ToString() + "\nWinning player: " + testData.playerToWin + "\nWin style: " + testData.winStyle + GetWinOption() + status);
+                EditorGUILayout.HelpBox(results, MessageType.Info);
+                
+                return;
         }
         // Title
         EditorGUILayout.Space();
@@ -38,7 +49,7 @@ class EditorTestTool : EditorWindow
         EditorGUILayout.LabelField("TicTacToe Tester", style, GUILayout.ExpandWidth(true));
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Test Speed ");
-        testData.speed = EditorGUILayout.Slider(testData.speed, 1, 10);
+        testData.speed = EditorGUILayout.Slider(testData.speed, testData.minSpeed, 5);
         EditorGUILayout.EndHorizontal();
 
         // Player options
@@ -82,31 +93,46 @@ class EditorTestTool : EditorWindow
                 break;
         }
 
-        // Results
-        GuiSeparator("Results: ");
-        if (testData.testInSession)
-        {
-            string results = ("Grid: " + testData.gridOptions.ToString() + "\nWinning player: " + testData.playerToWin + "\nWin style: " + testData.winStyle + GetWinOption());
-            EditorGUILayout.HelpBox(results, MessageType.Info);
-        }
-
         // Start the test
         GuiSeparator("Test: ");
         if (GUILayout.Button("Run Test"))
             RunTest();
-
-
-
     }
     #endregion
 
     #region PRIVATE
+    void TestComplete()
+    {
+        GameOver.onReload += ReloadTest;
+        // Show test results based on gameover
+        if (GameOver.winningPlayer == -1 && testData.winStyle == TestData.WinStyle.DRAW)
+            status = "\n\n SUCCESS";
+        else if (GameOver.winningPlayer == 0 && testData.playerToWin == TestData.PlayerToWin.PLAYER_ONE)
+            status = "\n\n SUCCESS";
+        else if (GameOver.winningPlayer == 1 && testData.playerToWin == TestData.PlayerToWin.PLAYER_TWO)
+            status = "\n\n SUCCESS";
+        else
+            status = "\n\n TEST FAILED";
+    }
+
+    void ReloadTest()
+    {
+        testActivated = false;
+        GameOver.onGameOver -= TestComplete;
+    }
+
     void RunTest()
     {
+        // Do a test on a fresh game by resetting the game
+        GameObject.FindWithTag("GameOverCanvas").GetComponent<GameOver>().ResetGame();
+
+        status = "\n\n IN PROGRESS";
+        testActivated = true;
+        GameOver.onGameOver += TestComplete;
+        GameOver.onReload -= ReloadTest;
         UnityEngine.Object testObject = Resources.Load("Prefabs/Testing/Test");
         GameObject test = (GameObject)Instantiate(testObject);
 
-        testData.testInSession = true;
         test.GetComponent<TicTacToeTest>().StartTest(testData);
     }
 

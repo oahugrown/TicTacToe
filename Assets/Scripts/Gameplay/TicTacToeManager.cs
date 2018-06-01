@@ -54,6 +54,7 @@ public class TicTacToeManager : MonoBehaviour
     #region MONO
     private void Awake()
     {
+        GameOver.onReset += ResetGame;
         SetUpGame();
     }
     #endregion // MONO
@@ -80,7 +81,17 @@ public class TicTacToeManager : MonoBehaviour
         if (moves.Count >= k_minMovesToWin)
         {
             if (HasPlayerWon())
+            {
                 EndGame();
+                return;
+            }
+        }
+
+        // Stalemate
+        if (moves.Count == sizeOfBoard * sizeOfBoard)
+        {
+            EndGame(true);
+            return;
         }
 
         // Switch players
@@ -167,7 +178,6 @@ public class TicTacToeManager : MonoBehaviour
                     return true;
                 else
                     tileIndex += (sizeOfBoard + 1);
-
             }
         }
         return false;
@@ -233,12 +243,25 @@ public class TicTacToeManager : MonoBehaviour
         }
     }
 
-    private void EndGame()
+    private void EndGame(bool draw = false)
     {   
-        this.transform.parent.GetComponent<Canvas>().enabled = false;
         GameOver gameOver = GameObject.FindWithTag("GameOverCanvas").GetComponent<GameOver>();
-        gameOver.ActivateGameOver((int)playerTurn);
+
+        if (draw)
+            gameOver.ActivateGameOver(-1);
+        else
+            gameOver.ActivateGameOver((int)playerTurn);
     }
 
+    private void ResetGame()
+    {
+        transform.parent.GetComponent<Canvas>().enabled = false;
+        Destroy(this.gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        GameOver.onReset -= ResetGame;
+    }
     #endregion  // PRIVATE
 }

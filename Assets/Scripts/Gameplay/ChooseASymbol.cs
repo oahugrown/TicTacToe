@@ -40,21 +40,13 @@ public class ChooseASymbol : MonoBehaviour
         return symbolButtons[symbolIndex].GetComponent<Image>().sprite;
     }
     public int GetPlayerLength() { return (int)SelectedPlayer.length; }
-    public void SetNewGame()
-    {
-        for (int i = 0; i < playerSelectObjects.Length; ++i)
-        {
-            // Assigning a default value
-            playerSymbols[i] = PlayerSymbol.unassigned;
-        }
-        GetComponent<Canvas>().enabled = true;
-    }
     #endregion // GETTERS
 
 
     #region MONO
     private void Awake()
     {
+        GameOver.onReset += SetNewGame;
         SetNewGame();
     }
     #endregion // MONO
@@ -109,6 +101,19 @@ public class ChooseASymbol : MonoBehaviour
         GameObject.FindWithTag("GridCanvas").GetComponent<Canvas>().enabled = true;
     }
 
-
+    private void SetNewGame()
+    {
+        for (int i = 0; i < playerSelectObjects.Length; ++i)
+        {
+            // Assigning a default value
+            playerSymbols[i] = PlayerSymbol.unassigned;
+        }
+        GetComponent<Canvas>().enabled = true;
+        selectedPlayer = SelectedPlayer.playerOne;
+    }
+    private void OnDestroy()
+    {
+        GameOver.onReset -= SetNewGame;
+    }
     #endregion // PRIVATE
 }

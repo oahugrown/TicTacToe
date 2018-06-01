@@ -16,7 +16,7 @@ public class TicTacToeTest : MonoBehaviour
     private TicTacToeManager gameManager;
 
     private List<int> winningTiles = new List<int>();
-    private List<int> tilesRemaining = new List<int>();
+    private List<int> losingTiles = new List<int>();
     private int winningTileIndex;
     private int sizeOfBoard;
 
@@ -50,10 +50,6 @@ public class TicTacToeTest : MonoBehaviour
     }
     IEnumerator Run()
     {
-        // Do a test on a fresh game by disabling all the canvas's and set a new game
-        gameManager = gameCanvas.transform.GetChild(2).GetComponent<TicTacToeManager>();
-        symbolCanvas.GetComponent<ChooseASymbol>().SetNewGame();
-        
         // Select player 1 symbol
         SelectPlayerSymbol(0);
         yield return new WaitForSeconds(GetSpeed());
@@ -72,39 +68,35 @@ public class TicTacToeTest : MonoBehaviour
         // Alternate player turns until player wins
         gameManager = gameCanvas.transform.GetChild(2).GetComponent<TicTacToeManager>();
         buttons = gameCanvas.transform.GetChild(2);
-        int runTime = (sizeOfBoard * 2) - 1;
+        int runTime = sizeOfBoard * sizeOfBoard;
         for (int i = 0; i < runTime; ++i)
         {
-            // Making sure the winning player plays the right
+            // Making sure the winning player plays the right tiles
             if ((int)data.playerToWin == gameManager.GetPlayerTurn())
             {
                 Transform tile = buttons.GetChild(winningTiles[winningTileIndex]);
                 tile.GetComponent<Button>().onClick.Invoke();
                 ++winningTileIndex;
+                if (winningTileIndex >= winningTiles.Count)
+                    break;
             }
             else
             {
-                bool searching = true;
-                int rng = 0;
-                while(searching)
-                {
-                    // randomly choose a tile that hasn't been played or isn't on the winning tile list.
-                    rng = Random.Range(0, tilesRemaining.Count);
-                    // Make sure that player doesn't accidently win
-                    searching = false;
-                }
-                buttons.GetChild(tilesRemaining[rng]).GetComponent<Button>().onClick.Invoke();
+                int rng = Random.Range(0, losingTiles.Count);
+                buttons.GetChild(losingTiles[rng]).GetComponent<Button>().onClick.Invoke();
+                // Safeguard against the rng so that it doesn't choose an already chosen tile.
+                losingTiles.RemoveAt(rng);
             }
             yield return new WaitForSeconds(GetSpeed());
         }
+        // success
 
-        // Success!
     }
+
     float GetSpeed()
     {
         float speed = data.speed;
         speed /= 3;
-        print(speed);
         return speed;
     }
 
@@ -130,8 +122,11 @@ public class TicTacToeTest : MonoBehaviour
 
     private void InitializeTestData()
     {
-        // Getting the winning tiles
+        // Making sure our data is empty
+        losingTiles.Clear();
+        winningTiles.Clear();
 
+        // Getting the winning tiles
         if (data.gridOptions == TestData.GridOptions.THREE_BY_THREE)
             sizeOfBoard = 3;
         else
@@ -171,15 +166,57 @@ public class TicTacToeTest : MonoBehaviour
                 winningTiles.Add(tileIndex);
                 tileIndex += tileIncrement;
             }
+
+            // Filling remaining tiles with tiles that the losing player can play.
+        int middleOfBoard = (sizeOfBoard * sizeOfBoard) / 2;
+        for (int i = 0; i < middleOfBoard; ++i)
+        {
+            if (!winningTiles.Contains(i))
+            {
+                losingTiles.Add(i);
+                i += Random.Range(1, sizeOfBoard);
+                if (i >= sizeOfBoard * sizeOfBoard)
+                    i = 0;
+            }
+            if (losingTiles.Count > sizeOfBoard)
+                break;
         }
-        // Filling remaining tiles with tiles that the losing player can play.
         for (int i = 0; i < sizeOfBoard * sizeOfBoard; ++i)
-        {
-            tilesRemaining.Add(i);
+            {
+                if (!winningTiles.Contains(i))
+                {
+                    if (losingTiles.Contains(i - 1) || losingTiles.Contains(i - sizeOfBoard) || losingTiles.Contains(i))
+                        continue;
+
+                    losingTiles.Add(i);
+                    i += Random.Range(1, sizeOfBoard);
+                    if (i >= sizeOfBoard * sizeOfBoard)
+                        i = 0;
+                }
+                if (losingTiles.Count > sizeOfBoard)
+                    break;
+            }
         }
-        for (int i = 0; i < winningTiles.Count; ++i)
+        // ..Draw = true
+        else
         {
-            tilesRemaining.Remove(winningTiles[i]);
+            int middleOfBoard = (sizeOfBoard * sizeOfBoard) / 2;
+            for (int i = 0; i < middleOfBoard; ++i)
+            {
+                if (i % 2 == 0)
+                    winningTiles.Add(i);
+                else
+                    losingTiles.Add(i);
+            }
+            for (int i = middleOfBoard; i < sizeOfBoard * sizeOfBoard; ++i)
+            {
+                if (i % 2 == 0)
+                    losingTiles.Add(i);
+                else
+                    winningTiles.Add(i);
+                    
+            }
+            
         }
     }
 }

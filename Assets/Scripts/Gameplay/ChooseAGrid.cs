@@ -22,7 +22,8 @@ public class ChooseAGrid : MonoBehaviour
 
     private void Awake()
     {
-        GetComponent<Canvas>().enabled = false;
+        GameOver.onReset += NewGame;
+        NewGame();
     }
 
     #region UICONTROLS
@@ -52,4 +53,16 @@ public class ChooseAGrid : MonoBehaviour
     }
 
     #endregion // UICONTROLS
+
+    #region PRIVATE
+    private void NewGame()
+    {
+        GetComponent<Canvas>().enabled = false;
+    }
+
+    private void OnDestroy()
+    {
+        GameOver.onReset -= NewGame;
+    }
+    #endregion
 }

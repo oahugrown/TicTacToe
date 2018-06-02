@@ -77,7 +77,7 @@ public class TicTacToeTest : MonoBehaviour
                 Transform tile = buttons.GetChild(winningTiles[winningTileIndex]);
                 tile.GetComponent<Button>().onClick.Invoke();
                 ++winningTileIndex;
-                if (winningTileIndex >= winningTiles.Count)
+                if (winningTileIndex > winningTiles.Count)
                     break;
             }
             else
@@ -134,7 +134,7 @@ public class TicTacToeTest : MonoBehaviour
 
         // Setting the index and tile increment data
         int tileIndex = 0;
-        int tileIncrement = 0;
+        int tileIncrement = 1;
         if (data.winStyle == TestData.WinStyle.HORIZONTAL)
         {
             tileIncrement = 1;
@@ -168,20 +168,20 @@ public class TicTacToeTest : MonoBehaviour
             }
 
             // Filling remaining tiles with tiles that the losing player can play.
-        int middleOfBoard = (sizeOfBoard * sizeOfBoard) / 2;
-        for (int i = 0; i < middleOfBoard; ++i)
-        {
-            if (!winningTiles.Contains(i))
+            int middleOfBoard = (sizeOfBoard * sizeOfBoard) / 2;
+            for (int i = 0; i < middleOfBoard; ++i)
             {
-                losingTiles.Add(i);
-                i += Random.Range(1, sizeOfBoard);
-                if (i >= sizeOfBoard * sizeOfBoard)
-                    i = 0;
+                if (!winningTiles.Contains(i))
+                {
+                    losingTiles.Add(i);
+                    i += Random.Range(1, sizeOfBoard);
+                    if (i >= sizeOfBoard * sizeOfBoard)
+                        i = 0;
+                }
+                if (losingTiles.Count > sizeOfBoard)
+                    break;
             }
-            if (losingTiles.Count > sizeOfBoard)
-                break;
-        }
-        for (int i = 0; i < sizeOfBoard * sizeOfBoard; ++i)
+            for (int i = 0; i < sizeOfBoard * sizeOfBoard; ++i)
             {
                 if (!winningTiles.Contains(i))
                 {
@@ -197,26 +197,34 @@ public class TicTacToeTest : MonoBehaviour
                     break;
             }
         }
-        // ..Draw = true
+        // ..Draw
         else
         {
-            int middleOfBoard = (sizeOfBoard * sizeOfBoard) / 2;
-            for (int i = 0; i < middleOfBoard; ++i)
+            bool tileForPlayer1 = true;
+            for (int i = 0; i < sizeOfBoard * sizeOfBoard; ++i)
             {
-                if (i % 2 == 0)
+                if (tileForPlayer1)
                     winningTiles.Add(i);
                 else
                     losingTiles.Add(i);
+                int rng = Random.Range(0, 2);
+                if (rng == 0 || winningTiles.Contains(i - 1) || 
+                    winningTiles.Contains(i - sizeOfBoard))
+                    tileForPlayer1 = !tileForPlayer1;
             }
-            for (int i = middleOfBoard; i < sizeOfBoard * sizeOfBoard; ++i)
+
+            if (winningTiles.Count + 1 > losingTiles.Count)
             {
-                if (i % 2 == 0)
-                    losingTiles.Add(i);
-                else
-                    winningTiles.Add(i);
-                    
+                losingTiles.Add(0);
+                winningTiles.RemoveAt(0);
             }
-            
+        }
+        // Safeguard to make sure player 1 has more moves that player 2 since 1 goes first
+        while (winningTiles.Count < losingTiles.Count)
+        {
+            int lastIndex = losingTiles.Count - 1;
+            winningTiles.Add(losingTiles[lastIndex]);
+            losingTiles.RemoveAt(lastIndex);
         }
     }
 }

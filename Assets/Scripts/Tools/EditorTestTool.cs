@@ -65,7 +65,6 @@ class EditorTestTool : EditorWindow
 
         // Win options
         GuiSeparator("Win Options: ");
-        testData.playerToWin = (TestData.PlayerToWin)EditorGUILayout.EnumPopup("Winning player", testData.playerToWin);
         testData.winStyle = (TestData.WinStyle)EditorGUILayout.EnumPopup("Win style", testData.winStyle);
         int sliderMax;
         if (testData.gridOptions == TestData.GridOptions.THREE_BY_THREE)
@@ -79,15 +78,18 @@ class EditorTestTool : EditorWindow
                 EditorGUILayout.LabelField("Winning Row: ");
                 testData.winIndex = EditorGUILayout.IntSlider(testData.winIndex, 0, sliderMax);
                 EditorGUILayout.EndHorizontal();
+                testData.playerToWin = (TestData.PlayerToWin)EditorGUILayout.EnumPopup("Winning player", testData.playerToWin);
                 break;
             case TestData.WinStyle.VERTICAL:
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Winning Column: ");
                 testData.winIndex = EditorGUILayout.IntSlider(testData.winIndex, 0, sliderMax);
                 EditorGUILayout.EndHorizontal();
+                testData.playerToWin = (TestData.PlayerToWin)EditorGUILayout.EnumPopup("Winning player", testData.playerToWin);
                 break;
             case TestData.WinStyle.DIAGONAL:
-                    testData.diagonalOptions = (TestData.DiagonalOptions)EditorGUILayout.EnumPopup("Diagonal slash", testData.diagonalOptions);
+                testData.diagonalOptions = (TestData.DiagonalOptions)EditorGUILayout.EnumPopup("Diagonal slash", testData.diagonalOptions);
+                testData.playerToWin = (TestData.PlayerToWin)EditorGUILayout.EnumPopup("Winning player", testData.playerToWin);
                 break;
             case TestData.WinStyle.DRAW:
                 break;

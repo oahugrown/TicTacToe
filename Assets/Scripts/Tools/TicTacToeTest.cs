@@ -15,10 +15,12 @@ public class TicTacToeTest : MonoBehaviour
     private GameObject gameCanvas;
     private TicTacToeManager gameManager;
 
-    private List<int> winningTiles = new List<int>();
-    private List<int> losingTiles = new List<int>();
-    private int winningTileIndex;
+    private List<int> playerOneTiles = new List<int>();
+    private List<int> playerTwoTiles = new List<int>();
     private int sizeOfBoard;
+
+    int firstRowIndex = 0;
+    List<bool> firstRow = new List<bool>();
 
     public void StartTest(TestData newData)
     {
@@ -45,7 +47,7 @@ public class TicTacToeTest : MonoBehaviour
         gameCanvas = GameObject.FindWithTag("GameCanvas");
         if (gameCanvas == null)
             return false;
-        
+
         return true;
     }
     IEnumerator Run()
@@ -69,28 +71,26 @@ public class TicTacToeTest : MonoBehaviour
         gameManager = gameCanvas.transform.GetChild(2).GetComponent<TicTacToeManager>();
         buttons = gameCanvas.transform.GetChild(2);
         int runTime = sizeOfBoard * sizeOfBoard;
-        for (int i = 0; i < runTime; ++i)
+        for (int j = 0; j < runTime; ++j)
         {
-            // Making sure the winning player plays the right tiles
-            if ((int)data.playerToWin == gameManager.GetPlayerTurn())
+            if (GameOver.gameIsOver)
+                break;
+
+            // player 1's turn
+            if (gameManager.GetPlayerTurn() == 0)
             {
-                Transform tile = buttons.GetChild(winningTiles[winningTileIndex]);
-                tile.GetComponent<Button>().onClick.Invoke();
-                ++winningTileIndex;
-                if (winningTileIndex > winningTiles.Count)
-                    break;
+                int rng = Random.Range(0, playerOneTiles.Count);
+                buttons.GetChild(playerOneTiles[rng]).GetComponent<Button>().onClick.Invoke();
+                playerOneTiles.RemoveAt(rng);
             }
-            else
+            else // player 2's turn
             {
-                int rng = Random.Range(0, losingTiles.Count);
-                buttons.GetChild(losingTiles[rng]).GetComponent<Button>().onClick.Invoke();
-                // Safeguard against the rng so that it doesn't choose an already chosen tile.
-                losingTiles.RemoveAt(rng);
+                int rng = Random.Range(0, playerTwoTiles.Count);
+                buttons.GetChild(playerTwoTiles[rng]).GetComponent<Button>().onClick.Invoke();
+                playerTwoTiles.RemoveAt(rng);
             }
             yield return new WaitForSeconds(GetSpeed());
         }
-        // success
-
     }
 
     float GetSpeed()
@@ -117,20 +117,21 @@ public class TicTacToeTest : MonoBehaviour
             case TestData.SymbolOptions.HEART:
                 buttons.GetChild(5).GetComponent<Button>().onClick.Invoke();
                 break;
-        }   
+        }
     }
 
     private void InitializeTestData()
     {
-        // Making sure our data is empty
-        losingTiles.Clear();
-        winningTiles.Clear();
-
-        // Getting the winning tiles
+        // Getting the grid size
         if (data.gridOptions == TestData.GridOptions.THREE_BY_THREE)
             sizeOfBoard = 3;
         else
             sizeOfBoard = 4;
+        
+
+        // Making sure our data is empty
+        playerTwoTiles.Clear();
+        playerOneTiles.Clear();
 
         // Setting the index and tile increment data
         int tileIndex = 0;
@@ -160,6 +161,8 @@ public class TicTacToeTest : MonoBehaviour
         }
         if (data.winStyle != TestData.WinStyle.DRAW)
         {
+            List<int> winningTiles = new List<int>();
+            List<int> losingTiles = new List<int>();
             // Setting the winning tiles
             for (int i = 0; i < sizeOfBoard; ++i)
             {
@@ -196,35 +199,164 @@ public class TicTacToeTest : MonoBehaviour
                 if (losingTiles.Count > sizeOfBoard)
                     break;
             }
+
+            // Set tiles to the players
+            if ((int)data.playerToWin == 0)
+            {
+                playerOneTiles = winningTiles;
+                playerTwoTiles = losingTiles;
+            }
+            else
+            {
+                playerOneTiles = losingTiles;
+                playerTwoTiles = winningTiles;
+            }
         }
         // ..Draw
         else
         {
-            bool tileForPlayer1 = true;
-            for (int i = 0; i < sizeOfBoard * sizeOfBoard; ++i)
+            int playerTwoTilesCount = 0;
+            int middleRow = 0;
+
+            if (sizeOfBoard % 2 == 1)
             {
-                if (tileForPlayer1)
-                    winningTiles.Add(i);
-                else
-                    losingTiles.Add(i);
-                int rng = Random.Range(0, 2);
-                if (rng == 0 || winningTiles.Contains(i - 1) || 
-                    winningTiles.Contains(i - sizeOfBoard))
-                    tileForPlayer1 = !tileForPlayer1;
+                middleRow = 1;
+                playerTwoTilesCount = 1;
             }
 
-            if (winningTiles.Count + 1 > losingTiles.Count)
+            for (int i = 0; i < sizeOfBoard; ++i)
             {
-                losingTiles.Add(0);
-                winningTiles.RemoveAt(0);
+                int endOfRow = i * sizeOfBoard - 1 + sizeOfBoard;
+                int rowIndex = 0;
+                bool previousTileIsPlayerOne = false;
+                for (int j = i * sizeOfBoard; j <= endOfRow; ++j)
+                {
+                    #region FIRST_ROW
+                    // If this is the first row, save whatever pattern was generated
+                    if (i == 0)
+                    {
+                        int rng = Random.Range(0, 2);
+                        // Make sure the last tile in the row is the same as the first one
+                        if (firstRow.Count == sizeOfBoard - 1)
+                        {
+                            if (firstRow[0] == false)
+                            {
+                                playerTwoTiles.Add(j);
+                                firstRow.Add(false);
+                            }
+                            else
+                            {
+                                playerOneTiles.Add(j);
+                                firstRow.Add(true);
+                            }
+
+                            // Verify first row didn't accidentally win
+                            if (firstRow[0] == firstRow[1])
+                            {
+                                if (firstRow[1])
+                                {
+                                    playerTwoTiles.Add(playerOneTiles[1]);
+                                    playerOneTiles.RemoveAt(1);
+                                }
+                                else
+                                {
+                                    playerOneTiles.Add(playerTwoTiles[1]);
+                                    playerTwoTiles.RemoveAt(1);
+                                }
+                                firstRow[1] = !firstRow[1];
+                            }
+                        }
+                        // ..else.. do random placement
+                        else if (rng == 0)
+                        {
+                            firstRow.Add(true);
+                            playerOneTiles.Add(j);
+                        }
+                        else if (rng == 1)
+                        {
+                            firstRow.Add(false);
+                            playerTwoTiles.Add(j);
+                        }
+                    }
+                    #endregion // FIRST_ROW
+                    #region LAST_ROW
+                    // If this is the last row, generate the same pattern of the first row, but swap the players
+                    else if (i == sizeOfBoard - 1)
+                    {
+                        if (firstRow[firstRowIndex])
+                            playerTwoTiles.Add(j);
+                        else
+                            playerOneTiles.Add(j);
+                        ++firstRowIndex;
+                    }
+                    #endregion// LAST_ROW
+
+                    #region MIDDLE_ROWS
+                    // If this is the middle rows make sure we have an even amount of tiles assigned per player
+                    else
+                    {
+                        // create anything if this is the first middle row
+                        if (middleRow == 0)
+                        {
+                            int rng = Random.Range(0, 2);
+                            if (j == endOfRow)
+                            {
+                                // separate for 4x4
+                                ++middleRow;
+                                if (!previousTileIsPlayerOne)
+                                    playerOneTiles.Add(j);
+                                else
+                                {
+                                    playerTwoTiles.Add(j);
+                                    ++playerTwoTilesCount;
+                                }
+                                playerTwoTilesCount = Mathf.Abs(playerTwoTilesCount - sizeOfBoard);
+                            }
+                            else if (rng == 0)
+                            {
+                                playerOneTiles.Add(j);
+                                previousTileIsPlayerOne = true;
+                            }
+                            else if (rng == 1)
+                            {
+                                playerTwoTiles.Add(j);
+                                ++playerTwoTilesCount;
+                                previousTileIsPlayerOne = false;
+                            }
+                        }
+
+                        else
+                        {
+                            // randomize if we can
+                            if (playerTwoTilesCount > 0)
+                            {
+                                if (sizeOfBoard - rowIndex > playerTwoTilesCount && playerTwoTilesCount > 0)
+                                {
+                                    int rng = Random.Range(0, 2);
+                                    if (rng == 0)
+                                        playerOneTiles.Add(j);
+                                    else
+                                    {
+                                        playerTwoTiles.Add(j);
+                                        --playerTwoTilesCount;
+                                    }
+                                }
+                                else
+                                {
+                                    playerTwoTiles.Add(j);
+                                    --playerTwoTilesCount;
+                                }
+                            }
+                            else
+                            {
+                                playerOneTiles.Add(j);
+                            }
+                        }
+                    }
+                    #endregion // MIDDLE_ROWS
+                    ++rowIndex;
+                }
             }
-        }
-        // Safeguard to make sure player 1 has more moves that player 2 since 1 goes first
-        while (winningTiles.Count < losingTiles.Count)
-        {
-            int lastIndex = losingTiles.Count - 1;
-            winningTiles.Add(losingTiles[lastIndex]);
-            losingTiles.RemoveAt(lastIndex);
         }
     }
 }

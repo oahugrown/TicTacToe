@@ -21,6 +21,9 @@ class EditorTestTool : EditorWindow
     private TestData testData = new TestData();
     private bool testActivated = false;
     private string status;
+    GameObject test;
+    int testLengthIndex;
+    Vector2 scrollPos;
     #endregion // DATA
 
 
@@ -35,21 +38,36 @@ class EditorTestTool : EditorWindow
         }
         if (testActivated)
         {
-                // Results
-                GuiSeparator("Test in session");
-                string results = ("Grid: " + testData.gridOptions.ToString() + "\nWinning player: " + testData.playerToWin + "\nWin style: " + testData.winStyle + GetWinOption() + status);
-                EditorGUILayout.HelpBox(results, MessageType.Info);
-                
-                return;
+            // Results
+            GuiSeparator("Test in session");
+            string playerToWin = "";
+            if (testData.winStyle != TestData.WinStyle.DRAW)
+                playerToWin = "\nWinning player: " + testData.playerToWin;
+            string results = ("Grid: " + testData.gridOptions.ToString() + "\nWin style: " + testData.winStyle + GetWinOption() + playerToWin + status);
+            EditorGUILayout.BeginHorizontal();
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(position.width), GUILayout.Height(position.height * 2 / 3));
+            GUILayout.Label(results);
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndHorizontal();
+
+            return;
         }
         // Title
         EditorGUILayout.Space();
         EditorGUILayout.Space();
         GUIStyle style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
         EditorGUILayout.LabelField("TicTacToe Tester", style, GUILayout.ExpandWidth(true));
+        // Speed
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Test Speed ");
-        testData.speed = EditorGUILayout.Slider(testData.speed, testData.minSpeed, 5);
+        testData.speed = EditorGUILayout.Slider(testData.speed, 0, testData.maxSpeed);
+        EditorGUILayout.EndHorizontal();
+        // Number of runs
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Number of tests to run");
+        testData.testLength = EditorGUILayout.IntField(testData.testLength);
+        if (testData.testLength < 1)
+            testData.testLength = 1;
         EditorGUILayout.EndHorizontal();
 
         // Player options
@@ -58,7 +76,7 @@ class EditorTestTool : EditorWindow
         testData.playerSymbols[1] = (TestData.SymbolOptions)EditorGUILayout.EnumPopup("Player 2", testData.playerSymbols[1]);
         if (testData.playerSymbols[1] == testData.playerSymbols[0])
             testData.playerSymbols[1] = (TestData.SymbolOptions)FindUnusedSymbol();
-        
+
         // Grid options
         GuiSeparator("Grid Options: ");
         testData.gridOptions = (TestData.GridOptions)EditorGUILayout.EnumPopup("Grid style", testData.gridOptions);
@@ -98,23 +116,40 @@ class EditorTestTool : EditorWindow
         // Start the test
         GuiSeparator("Test: ");
         if (GUILayout.Button("Run Test"))
+        {
+            testLengthIndex = 1;
             RunTest();
+        }
     }
     #endregion
 
     #region PRIVATE
+    private void Update()
+    {
+        if (GameOver.gameIsOver && testLengthIndex < testData.testLength)
+        {
+            float timeToSleep = Time.deltaTime + testData.speed * 2;
+            if (timeToSleep >= Time.deltaTime)
+            {
+                ++testLengthIndex;
+                Destroy(test);
+                RunTest();
+            }
+        }
+    }
+
     void TestComplete()
     {
         GameOver.onReload += ReloadTest;
         // Show test results based on gameover
         if (GameOver.winningPlayer == -1 && testData.winStyle == TestData.WinStyle.DRAW)
-            status = "\n\n SUCCESS";
+            status += "\n" + " SUCCESS";
         else if (GameOver.winningPlayer == 0 && testData.playerToWin == TestData.PlayerToWin.PLAYER_ONE)
-            status = "\n\n SUCCESS";
+            status += "\n" + " SUCCESS";
         else if (GameOver.winningPlayer == 1 && testData.playerToWin == TestData.PlayerToWin.PLAYER_TWO)
-            status = "\n\n SUCCESS";
+            status += "\n" + " SUCCESS";
         else
-            status = "\n\n TEST FAILED";
+            status += "\n" + testLengthIndex + " FAILED****************************";
     }
 
     void ReloadTest()
@@ -128,13 +163,12 @@ class EditorTestTool : EditorWindow
         // Do a test on a fresh game by resetting the game
         GameObject.FindWithTag("GameOverCanvas").GetComponent<GameOver>().ResetGame();
 
-        status = "\n\n IN PROGRESS";
+        status = "\n\n RESULTS";
         testActivated = true;
         GameOver.onGameOver += TestComplete;
         GameOver.onReload -= ReloadTest;
         UnityEngine.Object testObject = Resources.Load("Prefabs/Testing/Test");
-        GameObject test = (GameObject)Instantiate(testObject);
-
+        test = (GameObject)Instantiate(testObject);
         test.GetComponent<TicTacToeTest>().StartTest(testData);
     }
 

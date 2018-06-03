@@ -13,17 +13,25 @@ public class GameOver : MonoBehaviour
     public static event ReloadGameScene onReload;
     public delegate void ResetGamePlay();
     public static event ResetGamePlay onReset;
+    public static bool gameIsOver = false;
 
     public string[] playerStrings;
     public Text winnerText;
     public static int winningPlayer;
     private void Awake()
     {
+        NewGame();
+    }
+
+    private void NewGame()
+    {
         GetComponent<Canvas>().enabled = false;
+        gameIsOver = false;
     }
 
     public void ActivateGameOver(int playerThatWon)
     {
+        gameIsOver = true;
         GetComponent<Canvas>().enabled = true;
         winningPlayer = playerThatWon;
 
@@ -49,7 +57,7 @@ public class GameOver : MonoBehaviour
 
     public void ResetGame()
     {
-        GetComponent<Canvas>().enabled = false;
+        NewGame();
         if(onReset != null)
             onReset();
     }

@@ -49,7 +49,7 @@ public class TestData
     public int winIndex;
 
     public float speed;
-    public float minSpeed = 1;
-    public float maxSpeed = 5;
-
+    public float minSpeed = 0;
+    public float maxSpeed = 1;
+    public int testLength = 0;
 }

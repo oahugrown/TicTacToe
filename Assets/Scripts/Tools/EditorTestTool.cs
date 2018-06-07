@@ -21,6 +21,7 @@ class EditorTestTool : EditorWindow
     private TestData testData = new TestData();
     private bool testActivated = false;
     private string status;
+    private GameObject gameOverCanvas;
     GameObject test;
     int testLengthIndex;
     Vector2 scrollPos;
@@ -49,7 +50,7 @@ class EditorTestTool : EditorWindow
             GUILayout.Label(results);
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndHorizontal();
-
+            ShowBigWinTest();
             return;
         }
         // Title
@@ -120,15 +121,46 @@ class EditorTestTool : EditorWindow
             testLengthIndex = 1;
             RunTest();
         }
+
+        ShowBigWinTest();
+
     }
     #endregion
 
     #region PRIVATE
+    private void ShowBigWinTest()
+    {
+        GuiSeparator("Big Win");
+        string buttonText = "";
+        if (BigWin.bigWinActive)
+            buttonText = "Stop Big Win effects";
+        else
+            buttonText = "Play Big Win effects";
+        if (GUILayout.Button(buttonText))
+        {
+            BigWin.bigWinActive = !BigWin.bigWinActive;
+            BigWin.ActivateBigWin(BigWin.bigWinActive);
+        }
+        string cannonText = "";
+        if (BigWin.coinCannonActive)
+            cannonText = "Stop coin cannons";
+        else
+            cannonText = "Play coin cannons";
+        if (GUILayout.Button(cannonText))
+        {
+            BigWin.coinCannonActive = !BigWin.coinCannonActive;
+            BigWin.ActivateCoins(BigWin.coinCannonActive);
+        }
+    }
+
     private void Update()
     {
+        if (!testActivated)
+            return;
+        
         if (GameOver.gameIsOver && testLengthIndex < testData.testLength)
         {
-            float timeToSleep = Time.deltaTime + testData.speed * 2;
+            float timeToSleep = Time.deltaTime + testData.speed;
             if (timeToSleep >= Time.deltaTime)
             {
                 ++testLengthIndex;

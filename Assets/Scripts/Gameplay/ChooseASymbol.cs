@@ -97,12 +97,14 @@ public class ChooseASymbol : MonoBehaviour
 
     private void Continue()
     {
-        GetComponent<Canvas>().enabled = false;
-        GameObject.FindWithTag("GridCanvas").GetComponent<Canvas>().enabled = true;
+        GameObject.FindWithTag("MainCamera").GetComponent<CameraTransitions>().TransitionCamera(1);
     }
 
     private void SetNewGame()
     {
+        GameObject cameraObject = GameObject.FindWithTag("MainCamera");
+        cameraObject.transform.position = new Vector3(0,0,-10);
+        cameraObject.GetComponent<CameraTransitions>().TransitionCamera(0);
         for (int i = 0; i < playerSelectObjects.Length; ++i)
         {
             // Assigning a default value

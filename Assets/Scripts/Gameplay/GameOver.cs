@@ -26,6 +26,8 @@ public class GameOver : MonoBehaviour
     private void NewGame()
     {
         GetComponent<Canvas>().enabled = false;
+        BigWin.ActivateCoins(false);
+        BigWin.ActivateBigWin(false);
         gameIsOver = false;
     }
 
@@ -38,12 +40,14 @@ public class GameOver : MonoBehaviour
         // draw
         if (playerThatWon == -1)
         {
-            winnerText.text = "DRAW";
-            transform.GetChild(3).GetComponent<Text>().text = "";
+            transform.GetChild(1).GetComponent<Image>().enabled = true;
+            transform.GetChild(2).GetComponent<Text>().enabled = true;
         }
         else
-            winnerText.text = playerStrings[playerThatWon];
-
+        {
+            BigWin.ActivateBigWin(true);
+            BigWin.ActivateCoins(true);
+        }
         if (onGameOver != null)
             onGameOver();
     }

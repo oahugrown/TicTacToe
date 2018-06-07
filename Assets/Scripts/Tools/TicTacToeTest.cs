@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class TicTacToeTest : MonoBehaviour
 {
+    #region DATA
     [SerializeField]
     private TestData data;
     private GameObject symbolCanvas;
@@ -21,10 +22,14 @@ public class TicTacToeTest : MonoBehaviour
 
     int firstRowIndex = 0;
     List<bool> firstRow = new List<bool>();
+    private bool waitingForTheBoard = true;
+    #endregion // DATA
+
 
     public void StartTest(TestData newData)
     {
         data = newData;
+        TicTacToeManager.onBoardIsSet += BoardIsReady;
         InitializeTestData();
 
         // Find UI buttons
@@ -34,7 +39,20 @@ public class TicTacToeTest : MonoBehaviour
             Debug.LogError("Failed to set up necessary references TicTacToeTest.StartTest()");
 
     }
-    bool FindAllCanvasObjects()
+
+
+    #region PRIVATE
+    private void BoardIsReady()
+    {
+        waitingForTheBoard = false;
+    }
+
+    private void OnDestroy()
+    {
+        TicTacToeManager.onBoardIsSet -= BoardIsReady;
+    }
+
+    private bool FindAllCanvasObjects()
     {
         symbolCanvas = GameObject.FindWithTag("SymbolCanvas");
         if (symbolCanvas == null)
@@ -50,7 +68,8 @@ public class TicTacToeTest : MonoBehaviour
 
         return true;
     }
-    IEnumerator Run()
+
+    private IEnumerator Run()
     {
         // Select player 1 symbol
         SelectPlayerSymbol(0);
@@ -67,9 +86,15 @@ public class TicTacToeTest : MonoBehaviour
         // Continue
         buttons.GetChild(2).GetComponent<Button>().onClick.Invoke();
 
+        // waiting for the board to be set
+        while (waitingForTheBoard)
+        {
+            yield return null;
+        }
+
         // Alternate player turns until player wins
         gameManager = gameCanvas.transform.GetChild(2).GetComponent<TicTacToeManager>();
-        buttons = gameCanvas.transform.GetChild(2);
+        buttons = gameCanvas.transform.GetChild(2).GetChild(0);
         int runTime = sizeOfBoard * sizeOfBoard;
         for (int j = 0; j < runTime; ++j)
         {
@@ -93,7 +118,7 @@ public class TicTacToeTest : MonoBehaviour
         }
     }
 
-    float GetSpeed()
+    private float GetSpeed()
     {
         float speed = data.speed;
         speed /= 3;
@@ -127,7 +152,7 @@ public class TicTacToeTest : MonoBehaviour
             sizeOfBoard = 3;
         else
             sizeOfBoard = 4;
-        
+
 
         // Making sure our data is empty
         playerTwoTiles.Clear();
@@ -359,4 +384,5 @@ public class TicTacToeTest : MonoBehaviour
             }
         }
     }
+    #endregion // PRIVATE
 }

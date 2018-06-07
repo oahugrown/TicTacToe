@@ -15,7 +15,7 @@ public class ChooseAGrid : MonoBehaviour
     private GridType gridType = GridType.threeByThree;
     public GameObject[] gridPrefabs;
     public Button[] gridButtons;
-
+    private GameObject gameCanvas;
     #endregion // DATA
 
     public GridType GetGridType() { return gridType; }
@@ -46,10 +46,10 @@ public class ChooseAGrid : MonoBehaviour
 
     public void ContinueButton()
     {
-        GetComponent<Canvas>().enabled = false;
-        GameObject gameCanvas = GameObject.FindWithTag("GameCanvas");
-        gameCanvas.GetComponent<Canvas>().enabled = true;
-        Instantiate(gridPrefabs[(int)gridType], gameCanvas.transform);
+        RectTransform originalTransform = gridPrefabs[(int)gridType].GetComponent<RectTransform>();
+        GameObject grid = Instantiate(gridPrefabs[(int)gridType], gameCanvas.transform, true);
+        grid.GetComponent<RectTransform>().localPosition = originalTransform.position;
+        grid.GetComponent<RectTransform>().localScale = originalTransform.localScale;
     }
 
     #endregion // UICONTROLS
@@ -57,7 +57,7 @@ public class ChooseAGrid : MonoBehaviour
     #region PRIVATE
     private void NewGame()
     {
-        GetComponent<Canvas>().enabled = false;
+        gameCanvas = GameObject.FindWithTag("GameCanvas");
     }
 
     private void OnDestroy()

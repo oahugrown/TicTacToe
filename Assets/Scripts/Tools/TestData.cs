@@ -1,7 +1,8 @@
 ﻿// YYeung
 // TestData.cs
 
-using UnityEngine;
+
+#if UNITY_EDITOR
 [System.Serializable]
 public class TestData 
 {
@@ -53,3 +54,5 @@ public class TestData
     public float maxSpeed = 1;
     public int testLength = 0;
 }
+
+#endif // UNITY_EDITOR

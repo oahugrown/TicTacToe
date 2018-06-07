@@ -14,14 +14,10 @@ public class Launch : MonoBehaviour
     [HideInInspector]
     public Transform endMarker;
 
-    private Vector3 velocity = Vector3.zero;
-
     public float lifeSpan;
 
     void Start()
     {
-        //startTime = Time.time;
-        //journeyLength = Vector3.Distance(startMarker.position, endMarker.position);
         this.transform.position = startMarker.transform.position;
         speed = Random.Range(minSpeed, maxSpeed);
 

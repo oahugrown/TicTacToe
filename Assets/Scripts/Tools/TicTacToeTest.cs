@@ -1,6 +1,8 @@
 ﻿// YYeung
 // TicTacToeTest.cs
 
+
+#if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
@@ -386,3 +388,5 @@ public class TicTacToeTest : MonoBehaviour
     }
     #endregion // PRIVATE
 }
+
+#endif // UNITY_EDITOR

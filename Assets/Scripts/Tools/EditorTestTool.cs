@@ -1,9 +1,9 @@
 ﻿// YYeung
 // WinningTestTool.cs
 
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
-
 class EditorTestTool : EditorWindow
 {
     #region UNITYMENU
@@ -253,3 +253,5 @@ class EditorTestTool : EditorWindow
 
 }
 
+
+#endif // UNITY_EDITOR

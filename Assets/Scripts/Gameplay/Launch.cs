@@ -1,6 +1,7 @@
 ﻿// YYeung
 // Launch.cs
 
+using System.Collections;
 using UnityEngine;
 
 public class Launch : MonoBehaviour 
@@ -8,6 +9,9 @@ public class Launch : MonoBehaviour
     public float minSpeed = 1.0f;
     public float maxSpeed = 8.0f;
     private float speed = 1.0F;
+
+    private float startTime;
+    private float endTime;
 
     [HideInInspector]
     public Transform startMarker;
@@ -20,13 +24,22 @@ public class Launch : MonoBehaviour
     {
         this.transform.position = startMarker.transform.position;
         speed = Random.Range(minSpeed, maxSpeed);
-
         Invoke("Destroy", lifeSpan);
+        startTime = Time.time;
+        endTime = startTime + speed;
+        StartCoroutine(NewSpawn());
     }
-    void Update()
+    public IEnumerator NewSpawn()
     {
-        float step = speed * Time.deltaTime;
-        transform.position = Vector3.MoveTowards(transform.position, endMarker.transform.position, step);
+        while (Time.time < endTime)
+        {
+            float timeSoFar = Time.time - startTime;
+            float fractionTime = timeSoFar / speed;
+
+            this.transform.position = Vector3.Lerp(startMarker.position, endMarker.position, fractionTime);
+
+            yield return null;
+        }
     }
 
     private void Destroy()

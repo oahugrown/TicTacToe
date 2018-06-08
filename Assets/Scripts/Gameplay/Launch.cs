@@ -15,21 +15,23 @@ public class Launch : MonoBehaviour
 
     [HideInInspector]
     public Transform startMarker;
-    [HideInInspector]
+    //[HideInInspector]
     public Transform endMarker;
 
     public float lifeSpan;
 
-    void Start()
+    void OnEnable()
     {
-        this.transform.position = startMarker.transform.position;
+        if (endMarker == null)
+            endMarker = this.transform;
+        startMarker = this.transform;
         speed = Random.Range(minSpeed, maxSpeed);
         Invoke("Destroy", lifeSpan);
         startTime = Time.time;
         endTime = startTime + speed;
-        StartCoroutine(NewSpawn());
+        StartCoroutine(LaunchObject());
     }
-    public IEnumerator NewSpawn()
+    public IEnumerator LaunchObject()
     {
         while (Time.time < endTime)
         {
@@ -44,6 +46,6 @@ public class Launch : MonoBehaviour
 
     private void Destroy()
     {
-        Destroy(this.gameObject);
+        this.gameObject.SetActive(false);
     }
 }

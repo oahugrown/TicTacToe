@@ -14,11 +14,13 @@ public class Gravity : MonoBehaviour
     private bool hasGravity = true;
     private float gravityCap = 1000;
 
-    private void Awake()
+    private void OnEnable()
     {
         scale = Random.Range(Mathf.Abs(minScale), Mathf.Abs(maxScale));
+        gravity = 0;
         if (scale < 0)
             hasGravity = false;
+        transform.position = transform.parent.position;
     }
 
     void Update () 
